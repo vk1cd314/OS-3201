@@ -29,6 +29,7 @@
  */
 
 #include <cm4.h>
+#include <gpio.h>
 #include <kmain.h>
 #include <kstdio.h>
 #include <kstring.h>
@@ -46,17 +47,46 @@ void ms_delay(int ms) {
     while ((__mscount - start_time) < ms);
 }
 
+lul what[7];
+
+#define kprintf(_1,...) _Generic((_1), \
+                            int: kprintf_seven_segment_display,    \
+                            char *: kprintf) \
+                        (_1)
+
 void kmain(void) {
     __sys_init();
-
     __SysTick_init(1000);
     RCC->AHB1ENR |= (1 << 0);
-    GPIOA->MODER &= ~(0x3 << 8);
-    GPIOA->MODER |= (1 << 8);
+    RCC->AHB1ENR |= (1 << 1);
+    RCC->AHB1ENR |= (1 << 2);
+
+    what[0].GPIOx = GPIOA;
+    what[0].led = 7;
+
+    what[1].GPIOx = GPIOA;
+    what[1].led = 4;
+
+    what[2].GPIOx = GPIOA;
+    what[2].led = 6;
+
+    what[3].GPIOx = GPIOA;
+    what[3].led = 8;
+
+    what[4].GPIOx = GPIOC;
+    what[4].led = 7;
+
+    what[5].GPIOx = GPIOB;
+    what[5].led = 6;
+
+    what[6].GPIOx = GPIOB;
+    what[6].led = 10;
+
+    for (int i = 0; i < 7; ++i) gpio_init1(what[i], 1);
+
     while (1) {
-        ms_delay(500);
-        GPIOA->BSRR |= (1 << 4);
-        ms_delay(500);
-        GPIOA->BSRR |= (1 << 20);
+        int cur;
+        kscanf("%d", &cur);
+        kprintf(3);
     }
 }

@@ -27,7 +27,30 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+#include <clock.h>
 #include <gpio.h>
-void DRV_GPIO_INIT(GPIO_TypeDef* gpio) {
-    gpio->MODER |= 1 << 0;
+#include <stdint.h>
+#include <stm32_assert.h>
+
+void gpio_init(GPIO_TypeDef *GPIOx, int led, int val) {
+    GPIOx->MODER &= ~(3 << 2 * led);
+    GPIOx->MODER |= (val << 2 * led);
+}
+
+void gpio_write(GPIO_TypeDef *GPIOx, int led, int val) {
+    GPIOx->BSRR |= (val ? (1 << led) : (1 << (led + 16)));
+}
+
+// struct lul {
+// 	GPIO_TypeDef *GPIOx;
+// 	int led;
+// };
+
+void gpio_init1(lul hello, int val) {
+    gpio_init(hello.GPIOx, hello.led, val);
+}
+
+void gpio_write1(lul hello, int val) {
+    gpio_write(hello.GPIOx, hello.led, val);
 }

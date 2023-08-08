@@ -7,17 +7,10 @@ TARGET = target
 FPU = -mfloat-abi=softfp -mfpu=fpv4-sp-d16
 OBJECT = object
 USERLAND = ../userland
-INCLUDE=-I$(TOP)/arch/include -I$(TOP)/arch/$(MCU)/include -I$(TOP)/include -I$(TOP)/include/kern -I$(TOP)/arch/$(MCU)/include -I$(TOP)/arch/$(MCU)/include/dev -I$(TOP)/arch/include/cm4 -I$(TOP)/arch/$(MCU)/include/sys -I$(USERLAND)/include
+INCLUDE=-I$(TOP)/arch/include -I$(TOP)/arch/$(MCU)/include -I$(TOP)/include -I$(TOP)/include/kern -I$(TOP)/arch/$(MCU)/include -I$(TOP)/arch/$(MCU)/include/dev -I$(TOP)/arch/include/cm4 -I$(TOP)/arch/$(MCU)/include/sys -I$(USERLAND)/include -I$(TOP)/arch/$(MCU)/include/utilities
 MAPDIR = mapfiles
-CFLAGS=-c -mcpu=$(MACH) -mthumb $(FPU) -std=gnu11 -Wall -O0
+CFLAGS=-c -mcpu=$(MACH) -mthumb $(FPU) -std=c17 -Wall -O0
 LDFLAGS = -nostdlib -nostartfiles -nodefaultlibs -fno-exceptions  -mcpu=$(MACH) -mthumb $(FPU) -T $(TOP)/arch/$(MCU)/linker/linker.ld -Wl,-Map=$(MAPDIR)/duos.map -O0
-
-ifeq ($(OS),Windows_NT)
-  RM = cmd /C del /Q /F
-else
-  RM = rm -f
-endif
-
 .PHONY: all clean load
 all: kstring.o kmath.o cm4.o kfloat.o clock.o usart.o gpio.o timer.o kmain.o kstdio.o stm32_startup.o sys_init.o unistd.o times.o kunistd.o ktimes.o syscall.o duos 
 
@@ -80,5 +73,5 @@ clean:
 
 # To Students -- Modify to match with the appropriate driver file.
 load:
-	openocd -f F:\OpenOCD-20230712-0.12.0\share\openocd\scripts\board\stm32f4discovery.cfg -f F:\OpenOCD-20230712-0.12.0\share\openocd\scripts\interface\stlink.cfg -c "program target/duos verify reset"
+	openocd -f board\st_nucleo_f4.cfg -f interface\stlink.cfg -c "program target/duos verify reset"
 

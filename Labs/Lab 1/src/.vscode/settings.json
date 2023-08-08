@@ -1,5 +1,7 @@
 {
   "files.associations": {
-    "clock.h": "c"
-  }
+    "clock.h": "c",
+    "sys_init.h": "c"
+  },
+  "cmake.configureOnOpen": false
 }

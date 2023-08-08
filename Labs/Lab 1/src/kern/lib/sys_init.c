@@ -36,18 +36,17 @@
 #include <usart.h>
 void __sys_init(void) {
     DRV_CLOCK_INIT();        // configure system clock 180 MHz
-    DRV_GPIO_INIT(GPIOA);    // Initialize GPIO
     DRV_USART_INIT(USART2);  // configure as standard input and output
     __enable_fpu();          // enable FPU single precision floating point unit
     __SysTick_init(10000);   // enable systick for 10ms
     kprintf("\n************************************\r\n");
     kprintf("Booting DUOS .....\r\n");
-    kprintf("Copyright (c) 2022, CSE, DU\r\n");
-    kprintf("Credit: Third Year 2022\r\n");
+    kprintf("Copyright (c) 2022, Prof. Mosaddek Tushar, CSE, DU\r\n");
+    kprintf("Credit: Third Year 2022-23\r\n");
     kprintf("CPUID %x\n", SCB->CPUID);
-    kprintf("OS Version: 1.0\n");
+    kprintf("OS Version: 2023.1.0.1\n");
     kprintf("Time Elapse %d ms\n", __getTime());
-    kprintf("Welcome ....\r\n");
+    kprintf("Wellcome ....\r\n");
     kprintf("*************************************\r\n");
     kprintf("# ");
 }

@@ -28,10 +28,12 @@
  * SUCH DAMAGE.
  */
 
+#include <gpio.h>
 #include <kstdio.h>
 #include <kstring.h>
 #include <stm32_peps.h>
 #include <usart.h>
+// #include<seven_segment.h>
 /**
  * first argument define the type of string to kprintf and kscanf,
  * %c for charater
@@ -41,6 +43,20 @@
  * %o octal number
  * %f for floating point number
  */
+
+int hello[][7] = {{1, 1, 1, 1, 1, 1, 0},
+                  {0, 1, 2, 0, 0, 0, 0},
+                  {1, 1, 0, 1, 1, 0, 1},
+                  {1, 1, 1, 1, 0, 0, 1},
+                  {0, 1, 1, 0, 0, 1, 1},
+                  {1, 0, 1, 1, 0, 1, 1},
+                  {1, 0, 1, 1, 1, 1, 1},
+                  {1, 1, 1, 0, 0, 0, 1},
+                  {1, 1, 1, 1, 1, 1, 1},
+                  {1, 1, 1, 1, 0, 1, 1}};
+
+lul whot[7];
+
 // Simplified version of printf
 void kprintf(char *format, ...) {
     // write your code here
@@ -49,8 +65,9 @@ void kprintf(char *format, ...) {
     uint8_t *str;
     va_list list;
     double dval;
-    // uint32_t *intval;
+    int flag = 0;
     va_start(list, format);
+    int val = 0;
     for (tr = format; *tr != '\0'; tr++) {
         while (*tr != '%' && *tr != '\0') {
             UART_SendChar(USART2, *tr);
@@ -69,6 +86,17 @@ void kprintf(char *format, ...) {
                     UART_SendChar(USART2, '-');
                     i = -i;
                 }
+                val = i;
+                _USART_WRITE(USART2, (uint8_t *)convert(i, 10));
+                break;
+            case 'L':
+                i = va_arg(list, int);
+                if (i < 0) {
+                    UART_SendChar(USART2, '-');
+                    i = -i;
+                }
+                val = i;
+                flag = 1;
                 _USART_WRITE(USART2, (uint8_t *)convert(i, 10));
                 break;
             case 'o':
@@ -100,7 +128,78 @@ void kprintf(char *format, ...) {
         }
     }
     va_end(list);
+    if (flag) {
+        whot[0].GPIOx = GPIOA;
+        whot[0].led = 7;
+
+        whot[1].GPIOx = GPIOA;
+        whot[1].led = 4;
+
+        whot[2].GPIOx = GPIOA;
+        whot[2].led = 6;
+
+        whot[3].GPIOx = GPIOA;
+        whot[3].led = 8;
+
+        whot[4].GPIOx = GPIOC;
+        whot[4].led = 7;
+
+        whot[5].GPIOx = GPIOB;
+        whot[5].led = 6;
+
+        whot[6].GPIOx = GPIOB;
+        whot[6].led = 10;
+
+        for (int i = 0; i < 7; ++i) gpio_init1(whot[i], 1);
+
+        for (int i = 0; i < 7; ++i) {
+            if (hello[val][i]) {
+                gpio_write1(whot[i], 1);
+            } else {
+                gpio_write1(whot[i], 0);
+            }
+        }
+    }
 }
+
+void kprintf_seven_segment_display(int val) {
+    kprintf("Hello\n");
+    whot[0].GPIOx = GPIOA;
+    whot[0].led = 7;
+
+    whot[1].GPIOx = GPIOA;
+    whot[1].led = 4;
+
+    whot[2].GPIOx = GPIOA;
+    whot[2].led = 6;
+
+    whot[3].GPIOx = GPIOA;
+    whot[3].led = 8;
+
+    whot[4].GPIOx = GPIOC;
+    whot[4].led = 7;
+
+    whot[5].GPIOx = GPIOB;
+    whot[5].led = 6;
+
+    whot[6].GPIOx = GPIOB;
+    whot[6].led = 10;
+
+    for (int i = 0; i < 7; ++i) gpio_init1(whot[i], 1);
+
+    for (int i = 0; i < 7; ++i) {
+        if (hello[val][i]) {
+            gpio_write1(whot[i], 1);
+        } else {
+            gpio_write1(whot[i], 0);
+        }
+    }
+}
+
+// #define kprintf(_1,...) _Generic((_1), \
+//                             int: kprintf_seven_segment_display,    \
+//                             char *: kprintf, \
+//                         (__VA_ARGS__)
 
 // Simplified version of scanf
 void kscanf(char *format, ...) {
@@ -108,28 +207,32 @@ void kscanf(char *format, ...) {
     va_list list;
     char *ptr;
     uint8_t buff[50];
+    uint8_t *str;
+    int len;
     ptr = format;
     va_start(list, format);
     while (*ptr) {
-        /* code */
-        if (*ptr == '%') {  // looking for format of an input
+        if (*ptr == '%')  // looking for format of an input
+        {
             ptr++;
             switch (*ptr) {
                 case 'c':  // charater
-                    /* code */
                     *(uint8_t *)va_arg(list, uint8_t *) = UART_GetChar(USART2);
                     break;
                 case 'd':  // integer number
                     _USART_READ_STR(USART2, buff, 50);
                     *(uint32_t *)va_arg(list, uint32_t *) = __str_to_num(buff, 10);
                     break;
-                case 's':  // need to update -- string
+                case 's':  // string without spaces
                     _USART_READ_STR(USART2, buff, 50);
-                    *(uint32_t *)va_arg(list, uint32_t *) = __str_to_num(buff, 10);
+                    str = va_arg(list, uint8_t *);
+                    len = __strlen(buff);
+                    for (int u = 0; u <= len; u++)  // copy from buff to user defined char pointer (i.e string)
+                        str[u] = buff[u];
                     break;
                 case 'x':  // hexadecimal number
                     _USART_READ_STR(USART2, buff, 50);
-                    *(uint32_t *)va_arg(list, uint32_t *) = __str_to_num(buff, 16);
+                    *(int *)va_arg(list, uint32_t *) = __str_to_num(buff, 16);
                     break;
                 case 'o':  // octal number
                     _USART_READ_STR(USART2, buff, 50);
@@ -137,7 +240,8 @@ void kscanf(char *format, ...) {
                     break;
                 case 'f':  // floating point number
                     _USART_READ_STR(USART2, buff, 50);
-                    *(uint32_t *)va_arg(list, double *) = __str_to_num(buff, 10);
+                    //*(uint32_t*)va_arg(list,double*) = __str_to_num(buff,10);
+                    *(float *)va_arg(list, float *) = str2float(buff);  // Works for float but not for double !!!
                     break;
                 default:  // rest not recognized
                     break;

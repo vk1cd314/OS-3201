@@ -26,21 +26,29 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
  */
 
 #include <kfloat.h>
 #include <kmath.h>
 #include <kstdio.h>
 #include <kstring.h>
+
 static uint8_t __outbuf[50];
-uint32_t __str_to_num(uint8_t* buff, uint8_t base) {
-    volatile uint32_t decimal = 0;
-    volatile uint32_t val;
+int __str_to_num(uint8_t* buff, uint8_t base) {
+    uint8_t sign = 0;
+    int decimal = 0;
+    uint32_t val;
+    if (buff[0] == '-') {
+        sign = 1;
+        buff[0] = '0';
+    }
     __reverse_str(buff);
     uint32_t i = 0;
     while (buff[i]) {
         if (buff[i] >= '0' && buff[i] <= '9') {
-            val = (uint32_t)(buff[i] - 48);
+            val = (uint32_t)(buff[i] - '0');
+            // kprintf("%c\n",buff[i]);
         } else if (buff[i] >= 'a' && buff[i] <= 'f') {
             val = (uint32_t)(buff[i] - 97 + 10);
         } else if (buff[i] >= 'A' && buff[i] <= 'F') {
@@ -49,6 +57,7 @@ uint32_t __str_to_num(uint8_t* buff, uint8_t base) {
         decimal += val * __pow(base, i);
         i++;
     }
+    if (sign) decimal = decimal * -1;
     return decimal;
 }
 void __reverse_str(uint8_t* buff) {
@@ -58,24 +67,32 @@ void __reverse_str(uint8_t* buff) {
         tmp = buff[i];
         buff[i] = buff[j];
         buff[j] = tmp;
-        // kprintf("%c %c %c\n", tmp, buff[i], buff[j]);
     }
 }
-
 uint32_t __strlen(uint8_t* buff) {
     uint32_t i = 0;
     while (*buff++) i++;
     return i;
 }
-uint8_t* convert(uint32_t x, uint8_t base) {
+uint8_t* convert(int x, uint8_t base) {
+    uint8_t sign = 0;
+    if (x < 0) {
+        sign = 1;
+        x = x * -1;
+    }
     static uint8_t baseval[] = "0123456789ABCDEF";
     uint8_t* ptr;
     ptr = &__outbuf[49];
     *ptr = '\0';
     do {
         *--ptr = baseval[x % base];
+        // kprintf("%c",baseval[x%base]);
         x /= base;
     } while (x != 0);
+    if (sign) {
+        *--ptr = '-';
+    }
+
     return (ptr);
 }
 uint8_t* float2str(float f) {
@@ -84,7 +101,6 @@ uint8_t* float2str(float f) {
     ptr = &__outbuf[49];
     *ptr = '\0';
     int32_t d = f;
-    // kprintf("%d\n",d);
     uint32_t frac = get_decimal_part(f);
     do {
         *--ptr = baseval[frac % 10];
@@ -110,16 +126,15 @@ float str2float(uint8_t* buff) {
         i++;
         j = 1;
         while (buff[i] != '\0') {
-            f = f + (buff[i] - 48) / (__pow(10, j));
+            f = f + (float)((float)(buff[i] - '0') / ((float)__pow(10, j)));
             j++;
             i++;
         }
     }
-    __reverse_str(buff);
-
+    __reverse_str(buff);  // Reverse so that the unit's place can be evaluated first
     i = 0;
     while (buff[i] != '\0') {
-        f = f + ((buff[i] - 48) * __pow(10, i));
+        f = f + ((buff[i] - '0') * __pow(10, i));
         i++;
     }
     return f;

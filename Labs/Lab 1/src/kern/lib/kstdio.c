@@ -163,7 +163,7 @@ void kprintf(char *format, ...) {
 }
 
 void kprintf_seven_segment_display(int val) {
-    kprintf("Hello\n");
+    kprintf("It works gg\n");
     whot[0].GPIOx = GPIOA;
     whot[0].led = 7;
 
@@ -195,11 +195,6 @@ void kprintf_seven_segment_display(int val) {
         }
     }
 }
-
-// #define kprintf(_1,...) _Generic((_1), \
-//                             int: kprintf_seven_segment_display,    \
-//                             char *: kprintf, \
-//                         (__VA_ARGS__)
 
 // Simplified version of scanf
 void kscanf(char *format, ...) {

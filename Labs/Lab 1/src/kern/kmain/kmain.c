@@ -87,6 +87,6 @@ void kmain(void) {
     while (1) {
         int cur;
         kscanf("%d", &cur);
-        kprintf(3);
+        kprintf(cur);
     }
 }

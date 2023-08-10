@@ -43,6 +43,7 @@ void __sys_init(void) {
     kprintf("Booting DUOS .....\r\n");
     kprintf("Copyright (c) 2022, Prof. Mosaddek Tushar, CSE, DU\r\n");
     kprintf("Credit: Third Year 2022-23\r\n");
+    kprintf("Credit: Bholanath Das Niloy (Roll:22) and Anika Tabassum (Roll: 61)\r\n");
     kprintf("CPUID %x\n", SCB->CPUID);
     kprintf("OS Version: 2023.1.0.1\n");
     kprintf("Time Elapse %d ms\n", __getTime());

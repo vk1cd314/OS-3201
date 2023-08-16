@@ -172,8 +172,7 @@ uint32_t __NVIC_GetActive(IRQn_TypeDef IRQn) {
 }
 
 void test_hardfault() { 
-    int *p = 0;
-    int v = *p;    
+    __asm("udf #1");
 }
 
 void systick_enable_disable() {

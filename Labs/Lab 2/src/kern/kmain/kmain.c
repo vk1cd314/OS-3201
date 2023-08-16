@@ -171,7 +171,10 @@ uint32_t __NVIC_GetActive(IRQn_TypeDef IRQn) {
     }
 }
 
-void test_hardfault() { __asm("udf #1"); }
+void test_hardfault() { 
+    int *p = 0;
+    int v = *p;    
+}
 
 void systick_enable_disable() {
     for (int i = 0; i < 1e7; ++i);
@@ -197,41 +200,47 @@ void systick_modify() {
 void EXTI0_Handler(void) {
     if (EXTI->PR & (1 << 0)) { 
         kprintf("EXTI0 Interrupt\n");
-        EXTI->PR = (1 << 0);
+        EXTI->PR |= (1 << 0);
     } 
 }
 
 void configure_external_interrupt(void) {
-    RCC->AHB1ENR |= (1 << 0); 
-    GPIOA->MODER &= ~(3 << (4 * 2)); 
-    SYSCFG->EXTICR[0] &= ~(0x0F << 0); 
-    SYSCFG->EXTICR[0] |= (0x00 << 0); 
-    EXTI->RTSR |= (1 << 0); 
-    EXTI->FTSR |= (1 << 0); 
-    EXTI->IMR |= (1 << 0); 
+    RCC->APB2ENR |= (1 << 14);
+    SYSCFG->EXTICR[0] |= 1;
+    
+    RCC->AHB1ENR |= (1 << 1); 
+    GPIOB->MODER &= ~(0x3);
+    GPIOB->PUPDR &= ~(0x3);
+    GPIOB->PUPDR |= (0x1);
+
+    int pin = 0;
+    EXTI->IMR |= (1 << pin); 
+    EXTI->EMR |= (1 << pin);
+    EXTI->RTSR |= (1 << pin); 
+    EXTI->FTSR |= (1 << pin);
     
     __NVIC_SetPriority(EXTI0_STM_IRQn, 0); 
     __NVIC_EnableIRQn(EXTI0_STM_IRQn);
 }
 
+void test_ext0_interrupt() {
+    EXTI->SWIER |= (1 << 0);
+    ms_delay(10);
+    EXTI->SWIER &= ~(1 << 0);
+}
+
 void kmain(void) {
     __sys_init();
     __SysTick_init(1000000);
+    configure_external_interrupt();
 
     // test_hardfault();
     // systick_enable_disable();
     // reboot();
     // systick_modify();
-    // configure_external_interrupt();
-    // kprintf("%d\n", __NVIC_GetPriority(SysTick_IRQn));
-    // kprintf("%d\n", __NVIC_GetPriority(SysTick_IRQn));
-    // kprintf("%d\n", __NVIC_GetPriority(SysTick_IRQn + 1));
+    // test_ext0_interrupt();
 
     while (1) {
         // kprintf("Hello\n");
-        // GPIOA->ODR ^= (1 << 4);
-        // ms_delay(10);
-        // GPIOA->ODR ^= (1 << 4);
-        // ms_delay(10);
     }
 }

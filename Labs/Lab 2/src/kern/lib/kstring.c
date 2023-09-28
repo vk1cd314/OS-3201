@@ -82,7 +82,7 @@ uint8_t* convert(int x, uint8_t base) {
     }
     static uint8_t baseval[] = "0123456789ABCDEF";
     uint8_t* ptr;
-    ptr = &__outbuf[49];
+    ptr = &__outbuf[15];
     *ptr = '\0';
     do {
         *--ptr = baseval[x % base];

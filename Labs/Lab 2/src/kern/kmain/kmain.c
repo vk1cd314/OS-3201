@@ -43,7 +43,7 @@
 static volatile uint32_t __mscount;
 
 void SysTick_Handler(void) {
-    // kprintf("S ");
+    kprintf("S ");
     ++__mscount;
     SYSTICK->CTRL;
 }
@@ -53,23 +53,26 @@ void ms_delay(int ms) {
     while ((__mscount - start_time) < ms);
 }
 
-#define kprintf(_1, ...) _Generic((_1), \
-    int: kprintf_seven_segment_display, \
-    char *: kprintf)(_1)
+// #define kprintf(_1, ...) _Generic((_1), \
+//     int: kprintf_seven_segment_display, \
+//     char *: kprintf)(_1)
 
-void __NVIC_SetPriority(IRQn_TypeDef IRQn, uint32_t priority) {
-    if (IRQn >= 0) {
-        NVIC->IP[IRQn] = (uint8_t)((priority << 4));
-    } else {
-        SCB->SHPR[(((uint32_t)IRQn) & 0xFUL) - 4UL] = (uint8_t)((priority << (8U - 4U)) & (uint32_t)0xFFUL);
+void __NVIC_SetPriority(IRQn_TypeDef IRQn, uint8_t priority){
+	if(IRQn >= 0){
+		NVIC->IP[IRQn] = (uint8_t)((priority << 4));
+	}
+    else{
+        kprintf("set what %d for %d\n", ((uint8_t)(IRQn) & 0xFUL)-4UL, IRQn);
+        SCB->SHPR[((uint8_t)(IRQn) & 0xFUL)-4UL] = (uint8_t)((priority << 4) & (uint32_t)0xFFUL);
     }
 }
 
-uint32_t __NVIC_GetPriority(IRQn_TypeDef IRQn) {
-    if ((int32_t)(IRQn) >= 0) {
-        return (((uint32_t)NVIC->IP[((uint32_t)IRQn)] >> (8U - 3U)));
-    } else {
-        return (((uint32_t)SCB->SHPR[(((uint32_t)IRQn) & 0xFUL) - 4UL] >> (8U - 3U)));
+uint8_t __NVIC_GetPriority(IRQn_TypeDef IRQn){
+	if(IRQn >= 0){
+		return (uint8_t)(NVIC->IP[IRQn] >> 4);
+	} else{
+        kprintf("get what %d for %d\n", ((uint8_t)(IRQn) & 0xFUL)-4UL, IRQn);
+        return SCB->SHPR[((uint8_t)(IRQn) & 0xFUL)-4UL] >> 4 & (uint32_t)0xFFUL;
     }
 }
 
@@ -92,6 +95,7 @@ void __disable_irq() {
 }
 
 void __set_BASEPRI(uint32_t value) {
+    value <<= 4;
     __asm volatile("mov r0, %0"
                    : "=r"(value));
     __asm volatile("msr basepri, r0;");
@@ -187,6 +191,8 @@ void set_systick_priority() {
 
 void reboot() {
     for (int i = 0; i < 1e8; ++i);
+    kprintf("Rebooting\n");
+    SCB->AIRCR |= (0x5FA << 16) | (1 << 2);
     Reset_Handler();
 }
 
@@ -199,7 +205,9 @@ void systick_modify() {
 void EXTI0_Handler(void) {
     if (EXTI->PR & (1 << 0)) { 
         kprintf("EXTI0 Interrupt\n");
+        // for (int i = 0; i < 1e8; ++i);
         EXTI->PR |= (1 << 0);
+        reboot();
     } 
 }
 
@@ -216,9 +224,9 @@ void configure_external_interrupt(void) {
     EXTI->IMR |= (1 << pin); 
     EXTI->EMR |= (1 << pin);
     EXTI->RTSR |= (1 << pin); 
-    EXTI->FTSR |= (1 << pin);
+    EXTI->FTSR &= ~(1 << pin);
     
-    __NVIC_SetPriority(EXTI0_STM_IRQn, 0); 
+    __NVIC_SetPriority(EXTI0_STM_IRQn, 1); 
     __NVIC_EnableIRQn(EXTI0_STM_IRQn);
 }
 
@@ -238,8 +246,25 @@ void kmain(void) {
     // reboot();
     // systick_modify();
     // test_ext0_interrupt();
+    // GPIOB->IDR &= ~(1 << 0);
+    int val = __NVIC_GetPriority(SysTick_IRQn);
+    kprintf("current priority %d\n", val);
+    __NVIC_SetPriority(SysTick_IRQn, 13);
+    val = __NVIC_GetPriority(SysTick_IRQn);
+    kprintf("priority after %d\n", val);
+
+    for (int i = 0; i < 1e7; ++i);
+    __set_BASEPRI(12);
+
+    // for (int i = 0; i < 1e7; ++i);
+    // __set_BASEPRI(14);
+
 
     while (1) {
         // kprintf("Hello\n");
+        // if (GPIOB->IDR & (1 << 0)) {
+        //     // kprintf("On\n");
+        //     ms_delay(10);
+        // }
     }
 }

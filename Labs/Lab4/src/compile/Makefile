@@ -14,7 +14,6 @@ LDFLAGS = -nostdlib -nostartfiles -nodefaultlibs -fno-exceptions -mcpu=$(MACH) -
 .PHONY: all clean load
 all: kstring.o kmath.o cm4.o kfloat.o clock.o usart.o gpio.o timer.o kmain.o kstdio.o stm32_startup.o sys_init.o unistd.o times.o kunistd.o ktimes.o syscall.o seven_segment.o sys.o test_interrupt.o nvic.o dev_table.o ustdio.o schedule.o schedule_fcfs.o task_queue.o sem.o duos
 
-############ added by Reyadath
 nvic.o: $(TOP)/arch/$(MCU)/sys/nvic.c
 	$(CC) $(CFLAGS) $(INCLUDE) $^ -o $(OBJECT)/$@
 sys.o: $(TOP)/arch/$(MCU)/sys/sys.c
@@ -35,8 +34,6 @@ task_queue.o: $(TOP)/lib/task_queue.c
 	$(CC) $(CFLAGS) $(INCLUDE) $^ -o $(OBJECT)/$@
 sem.o: $(TOP)/lib/sem.c
 	$(CC) $(CFLAGS) $(INCLUDE) $^ -o $(OBJECT)/$@
-############ added by Reyadath
-
 
 kstdio.o: $(TOP)/lib/kstdio.c
 	$(CC) $(CFLAGS) $(INCLUDE) $^ -o $(OBJECT)/$@

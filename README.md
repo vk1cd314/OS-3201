@@ -17,7 +17,7 @@ OS-3201 is a bare-metal project developed for the STM32F446RE board, utilizing A
    ```
 2. Navigate to the project directory:
    ```bash
-   cd OS-3201
+   cd OS-3201/Lab*
    ```
 3. Compile the project:
    ```bash
